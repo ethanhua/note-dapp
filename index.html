@@ -46,7 +46,7 @@
     <script src=lib/nebulas.js></script>
     <script>
         var noteData;
-        var dappAddress = "n224JLVF2jNaMcm9CDMk796FFcmG51cigNH";
+        var dappAddress = "n1voH1kuPSNrKq87jPTSr3hXj6cABZugCRx";
 
         var nebulas = require("nebulas"),
             Account = nebulas.Account,
@@ -82,7 +82,7 @@
                     console.log("tx result: " + resp)   //resp is a JSON string
                     var respObject = JSON.parse(resp)
                     if (respObject.code === 0) {
-                        alert(`set ${$("#search_value").val()} succeed!`)
+                        alert("保存成功")
                         clearInterval(intervalQuery)
                     }
                 })
@@ -98,7 +98,7 @@
             var callArgs = "[\"" + $("#search_value").val() + "\",\"" + $("#add_value").val() + "\"]"
 
             serialNumber = nebPay.call(to, value, callFunction, callArgs, {    //使用nebpay的call接口去调用合约,
-                listener: cbPush        //设置listener, 处理交易返回信息
+                listener: function(resp){}    //设置listener, 处理交易返回信息
             });
 
             intervalQuery = setInterval(function () {
@@ -109,9 +109,10 @@
 
 
         function searchData() {
-            var key = $("#search_value").val() //搜索框内的值
-            if (key == null) {
-
+            var key = $("#search_value").val().trim() //搜索框内的值
+            if (key == "") {
+                alert("请输入署名！")
+                return
             }
             var from = Account.NewAccount().getAddressString();
             var value = "0";

@@ -42,10 +42,10 @@ function getNowTimeString(){
     var date = new Date();
     var year = date.getFullYear();
     var month = date.getMonth()+ 1;
-    var day = date.getDay();
+    var day = date.getDate();
     var hour = date.getHours();
-    var sec = date.getSeconds();
-    var Times = adapterNum(year)+"年"+adapterNum(month)+"月"+adapterNum(day)+"日 "+adapterNum(hour)+"时"+adapterNum(sec)+"分";
+    var mins = date.getMinutes();
+    var Times = adapterNum(year)+"年"+adapterNum(month)+"月"+adapterNum(day)+"日";
     return Times;
 }
 
