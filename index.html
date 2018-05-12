@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=0.5, maximum-scale=0.5, minimum-scale=0.5, user-scalable=no">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="full-screen" content="yes">
+    <title>Note</title>
+    <link rel="stylesheet" href="lib/bootstrap-4.0.0-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="index.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <form class="form-inline" style="margin-top: 100px">
+            <div class="form-group">
+                <label for="search_value"> 署名 </label>
+                <input type="text" class="form-control" id="search_value" style="margin-left: 10px" placeholder="ethanhua">
+            </div>
+            <span class="btn btn-primary" id="search" style="margin-left: 10px">查询</span>
+        </form>
+        <div id="noteList" class="note-list">
+        </div>
+
+        <textarea id="add_value" class="form-control" rows="3" style="margin-top: 20px" placeholder="现在想记点什么呢~"></textarea>
+        <span class="btn btn-primary" style="margin-top: 10px;" id="add">新增笔记</span>
+    </div>
+    <script src=lib/jquery-3.3.1.min.js></script>
+    <script src=lib/nebPay.js></script>
+    <script src=lib/bootstrap-4.0.0-dist/js/bootstrap.min.js></script>
+    <script src="lib/artTemplate.js"></script>
+    <script id="noteCards" type="text/html">
+        <div class="card">
+            <ul class="list-group list-group-flush">
+                <%for(var i=0;i<contentItems.length;i++){%>
+                    <li class="list-group-item"><%= contentItems[i].content%>
+                     <p class="item-date"><%= contentItems[i].time%></p>
+                    </li>
+                <%}%>
+            </ul>
+        </div>
+    </script>
+    <script src=lib/nebulas.js></script>
+    <script>
+        var noteData;
+        var dappAddress = "n224JLVF2jNaMcm9CDMk796FFcmG51cigNH";
+
+        var nebulas = require("nebulas"),
+            Account = nebulas.Account,
+            neb = new nebulas.Neb();
+        neb.setRequest(new nebulas.HttpRequest("https://testnet.nebulas.io"));
+        var NebPay = require("nebpay");     //https://github.com/nebulasio/nebPay
+        var nebPay = new NebPay();
+        var serialNumber
+        var intervalQuery
+
+        $("#search").click(function () {
+            searchData();
+        })
+        $("#add").click(function () {
+            if (noteData != null) {
+                var now = new Date();
+                var contentItem = {
+                    time: now.toLocaleString(),
+                    content: $("#add_value").val()
+                }
+                console.log(JSON.stringify(contentItem));
+                noteData.contentItems.push(contentItem);
+                renderNoteListView(noteData)
+            } else {
+
+            }
+            addData();
+
+        })
+        function funcIntervalQuery() {
+            nebPay.queryPayInfo(serialNumber)   //search transaction result from server (result upload to server by app)
+                .then(function (resp) {
+                    console.log("tx result: " + resp)   //resp is a JSON string
+                    var respObject = JSON.parse(resp)
+                    if (respObject.code === 0) {
+                        alert(`set ${$("#search_value").val()} succeed!`)
+                        clearInterval(intervalQuery)
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+
+        function addData() {
+            var to = dappAddress;
+            var value = "0";
+            var callFunction = "save"
+            var callArgs = "[\"" + $("#search_value").val() + "\",\"" + $("#add_value").val() + "\"]"
+
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {    //使用nebpay的call接口去调用合约,
+                listener: cbPush        //设置listener, 处理交易返回信息
+            });
+
+            intervalQuery = setInterval(function () {
+                funcIntervalQuery();
+            }, 5000);
+        }
+
+
+
+        function searchData() {
+            var key = $("#search_value").val() //搜索框内的值
+            if (key == null) {
+
+            }
+            var from = Account.NewAccount().getAddressString();
+            var value = "0";
+            var nonce = "0"
+            var gas_price = "1000000"
+            var gas_limit = "2000000"
+            var callFunction = "get";
+            var callArgs = "[\"" + $("#search_value").val() + "\"]"; //in the form of ["args"]
+            var contract = {
+                "function": callFunction,
+                "args": callArgs
+            }
+            neb.api.call(from, dappAddress, value, nonce, gas_price, gas_limit, contract).then(function (resp) {
+                renderNoteListView(JSON.parse(resp.result))
+            }).catch(function (err) {
+                console.log("error:" + err.message)
+            })
+        }
+
+
+        function renderNoteListView(data) {
+            if (data == null) {
+                document.getElementById('noteList').innerHTML = "<p>没有结果，添加一条笔记吧~</p>";
+                return
+            }
+            noteData = data;
+            var html = template('noteCards', data);
+            document.getElementById('noteList').innerHTML = html;
+        }
+
+    </script>
+</body>
+
+</html>
