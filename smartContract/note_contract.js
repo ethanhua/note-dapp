@@ -43,8 +43,6 @@ function getNowTimeString(){
     var year = date.getFullYear();
     var month = date.getMonth()+ 1;
     var day = date.getDate();
-    var hour = date.getHours();
-    var mins = date.getMinutes();
     var Times = adapterNum(year)+"年"+adapterNum(month)+"月"+adapterNum(day)+"日";
     return Times;
 }
