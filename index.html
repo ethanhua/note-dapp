@@ -26,7 +26,8 @@
             <div id="noteList" class="note-list">
             </div>
 
-            <textarea id="add_value" class="form-control" rows="3" style="margin-top: 20px" placeholder="记点什么呢~"></textarea>
+            <textarea id="add_value" class="form-control" rows="3" style="margin-top: 20px" placeholder="记点什么呢~" maxlength="64" oninput="textAreaOnInputChanged()"></textarea>
+            <p id="limitNum" class="limit-num">0/64</p>
             <span class="btn btn-primary" style="margin-top: 10px;" id="add">新增笔记</span>
     </div>
     <script src=lib/jquery-3.3.1.min.js></script>
@@ -82,8 +83,12 @@
             noteData.contentItems.push(contentItem);
             renderNoteListView(noteData)
             addData(key, content);
-
         })
+        function textAreaOnInputChanged(){
+            debugger
+            var content = $("#add_value").val().trim();
+            $("#limitNum").html(content.length+"/64")
+        }
         function funcIntervalQuery() {
             nebPay.queryPayInfo(serialNumber)   //search transaction result from server (result upload to server by app)
                 .then(function (resp) {
